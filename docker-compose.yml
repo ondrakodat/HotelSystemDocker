@@ -4,6 +4,8 @@ services:
             context : ../HotelSystemFE
         container_name : hotel-frontend
         restart : unless-stopped
+        ports:
+            - "127.0.0.1:8081:80"
 
     backend:
         build:
@@ -17,19 +19,23 @@ services:
             
             SPRING_DATA_REDIS_HOST: redis
             SPRING_DATA_REDIS_PORT: 6379
+
+            JWT_PRIVATE_KEY_PATH: /run/secrets/hotel-jwt/private.key
+            JWT_PUBLIC_KEY_PATH: /run/secrets/hotel-jwt/public.key
         depends_on:
             postgres:
                 condition: service_healthy
             redis:
                 condition: service_healthy
-
+        volumes:
+            - C:/Users/revel/SecretHotel:/run/secrets/hotel-jwt:ro
     postgres:
         image: postgres:17
         container_name : hotel-postgres
         restart : unless-stopped
         environment:
             POSTGRES_USER: hoteluser
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_PASSWORD: nejake_docasne_heslo_to_zmenime
             POSTGRES_DB: hoteldb
         volumes:
             - hotel-postgres-data:/var/lib/postgresql/data
