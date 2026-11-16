@@ -1,2 +1,19 @@
 services:
-  
+  frontend:
+        build: 
+            context : ../HotelSystemFE
+        container_name : hotel-frontend
+        restart : unless-stopped
+  backend:
+        build:
+            context : ../ComplexHotelSystem
+        container_name : hotel-backend
+        restart : unless-stopped
+  postgres:
+        image: postgres:17
+        container_name : hotel-postgres
+        restart : unless-stopped
+  redis:
+        image : redis:8
+        container_name : hotel-redis
+        restart : unless-stopped
