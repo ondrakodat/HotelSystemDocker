@@ -4,6 +4,7 @@ services:
             context : ../HotelSystemFE
         container_name : hotel-frontend
         restart : unless-stopped
+
     backend:
         build:
             context : ../ComplexHotelSystem
@@ -16,6 +17,11 @@ services:
             
             SPRING_DATA_REDIS_HOST: redis
             SPRING_DATA_REDIS_PORT: 6379
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
 
     postgres:
         image: postgres:17
@@ -27,9 +33,20 @@ services:
             POSTGRES_DB: hoteldb
         volumes:
             - hotel-postgres-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U hoteluser -d hoteldb"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
     redis:
         image : redis:8
         container_name : hotel-redis
         restart : unless-stopped
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 volumes:
     hotel-postgres-data:
