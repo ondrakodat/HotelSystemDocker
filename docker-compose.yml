@@ -1,17 +1,23 @@
 services:
     frontend:
         build: 
-            context : ../HotelSystemFE
+            context : ../HotelSystemFE_/HotelSystemFE
         container_name : hotel-frontend
         restart : unless-stopped
         ports:
             - "127.0.0.1:8081:80"
+        depends_on:
+            backend:
+                condition: service_healthy
+
 
     backend:
         build:
             context : ../ComplexHotelSystem
         container_name : hotel-backend
         restart : unless-stopped
+        expose:
+            - "8080"
         environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/hoteldb
             SPRING_DATASOURCE_USERNAME: hoteluser
@@ -20,22 +26,36 @@ services:
             SPRING_DATA_REDIS_HOST: redis
             SPRING_DATA_REDIS_PORT: 6379
 
-            JWT_PRIVATE_KEY_PATH: /run/secrets/hotel-jwt/private.key
-            JWT_PUBLIC_KEY_PATH: /run/secrets/hotel-jwt/public.key
+            SPRING_MAIL_HOST: smtp.resend.com
+            SPRING_MAIL_PORT: 465
+            SPRING_MAIL_USERNAME: resend
+            SPRING_MAIL_PASSWORD: ${RESEND_API_KEY}
+
+            APP_JWT_PRIVATE_KEY_PATH: /run/secrets/hotel-jwt/private.key
+            APP_JWT_PUBLIC_KEY_PATH: /run/secrets/hotel-jwt/public.key
         depends_on:
             postgres:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "curl -fsS http://localhost:8080/api/actuator/health || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
         volumes:
-            - C:/Users/revel/SecretHotel:/run/secrets/hotel-jwt:ro
+            - ./secrets:/run/secrets/hotel-jwt:ro
+        
+
+
     postgres:
         image: postgres:17
         container_name : hotel-postgres
         restart : unless-stopped
         environment:
             POSTGRES_USER: hoteluser
-            POSTGRES_PASSWORD: nejake_docasne_heslo_to_zmenime
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_DB: hoteldb
         volumes:
             - hotel-postgres-data:/var/lib/postgresql/data

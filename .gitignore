@@ -1,1 +1,4 @@
 .env
+
+secrets/private.key
+secrets/public.key
