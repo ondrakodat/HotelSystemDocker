@@ -1,11 +1,30 @@
 services:
-    frontend:
-        build: 
-            context : ../HotelSystemFE_/HotelSystemFE
-        container_name : hotel-frontend
-        restart : unless-stopped
+    caddy:
+        image: caddy:2
+        container_name: kodat-caddy
+        restart: unless-stopped
         ports:
-            - "127.0.0.1:8081:80"
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - caddy-data:/data
+            - caddy-config:/config
+        depends_on:
+            - mainpage
+            - frontend
+
+    mainpage:
+        build:
+            context: ../MainPage/mainPage
+        container_name: kodat-mainpage
+        restart: unless-stopped
+
+    frontend:
+        build:
+            context: ../HotelSystemFE_/HotelSystemFE
+        container_name: hotel-frontend
+        restart: unless-stopped
         depends_on:
             backend:
                 condition: service_healthy
@@ -33,6 +52,11 @@ services:
 
             APP_JWT_PRIVATE_KEY_PATH: /run/secrets/hotel-jwt/private.key
             APP_JWT_PUBLIC_KEY_PATH: /run/secrets/hotel-jwt/public.key
+
+            SPRING_JPA_SHOW_SQL: "false"
+            LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: INFO
+            LOGGING_LEVEL_ORG_HIBERNATE_SQL: WARN
+            LOGGING_LEVEL_ORG_HIBERNATE_ORM_JDBC_BIND: WARN
         depends_on:
             postgres:
                 condition: service_healthy
@@ -76,3 +100,5 @@ services:
             retries: 5
 volumes:
     hotel-postgres-data:
+    caddy-data:
+    caddy-config:

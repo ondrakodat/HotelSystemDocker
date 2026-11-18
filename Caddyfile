@@ -1,0 +1,11 @@
+kodat.cz, www.kodat.cz {
+    encode zstd gzip
+    reverse_proxy mainpage:80
+}
+
+hotel.kodat.cz {
+    encode zstd gzip
+    reverse_proxy frontend:80 {
+    header_up X-Verified-Client-IP {http.request.remote.host}
+}
+}
